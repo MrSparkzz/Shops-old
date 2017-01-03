@@ -13,7 +13,7 @@ import org.spongepowered.api.plugin.Plugin;
 /**
  * @author Brendon Butler
  */
-@Plugin(id = "shops", name = "Shops", version = "0.1.2-ALPHA", description = "Command Based Shops", authors = {"MrSparkzz"})
+@Plugin(id = "shops", name = "Shops", version = "0.1.3-ALPHA", description = "Command Based Shops", authors = {"MrSparkzz"})
 public class Shops {
 
 	@Inject
