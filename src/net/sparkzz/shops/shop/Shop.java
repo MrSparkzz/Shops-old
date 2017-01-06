@@ -72,11 +72,15 @@ public class Shop {
 	}
 
 	public int getID(ItemType item) {
-		return items.indexOf(item);
+		return items.indexOf(item) + 1;
+	}
+
+	public ItemType getItemById(int id) {
+		return items.get(id - 1);
 	}
 
 	public void add(ItemType item, int quantity) {
-		inventory.get(item).put("quantity", (int) inventory.get(item).get("quantity") + quantity);
+		inventory.get(item).put("quantity", getRemaining(item) + quantity);
 	}
 
 	public void add(ItemType item, int quantity, int desired, BigDecimal salePrice, BigDecimal buyPrice) {
@@ -94,14 +98,20 @@ public class Shop {
 	}
 
 	public void deposit(BigDecimal amount) {
-		balance.add(amount);
+		balance = balance.add(amount);
 	}
 
 	public void remove(ItemType item, int quantity) {
-		inventory.get(item).put("quantity", (int) inventory.get(item).get("quantity") - quantity);
+		if (getRemaining(item) != -1)
+			inventory.get(item).put("quantity", (int) inventory.get(item).get("quantity") - quantity);
 	}
 
 	public void withdraw(BigDecimal amount) {
-		balance.subtract(amount);
+		balance = balance.subtract(amount);
+	}
+
+	public void adjustDesiredAmount(ItemType item, int quantity) {
+		if (getDesiredAmount(item) != -1)
+			inventory.get(item).put("desired", (int) inventory.get(item).get("desired") - quantity);
 	}
 }

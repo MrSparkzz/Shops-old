@@ -1,5 +1,6 @@
-package net.sparkzz.shops.util;
+package net.sparkzz.shops.event;
 
+import net.sparkzz.shops.util.Messenger;
 import org.spongepowered.api.event.Listener;
 
 /**
@@ -28,6 +29,9 @@ public class TransactionListener {
 					break;
 				case INVALID_ACC_BAL:
 					event.getCustomer().sendMessage(Messenger.INVALID_ACC_BAL);
+					break;
+				case NOT_BUYING:
+					event.getCustomer().sendMessage(Messenger.NOT_BUYING);
 					break;
 				default:
 					event.getCustomer().sendMessage(Messenger.OTHER);

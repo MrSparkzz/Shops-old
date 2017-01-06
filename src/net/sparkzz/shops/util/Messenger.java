@@ -8,6 +8,11 @@ import org.spongepowered.api.text.format.TextColors;
  */
 public class Messenger {
 
+	// command messages
+	public static final Text
+			CMD_ONLY_PLAYERS = Text.builder().color(TextColors.RED).append(Text.of("Only players can use this command!")).build();
+
+	// shop messages
 	public static final Text
 			ERROR_ACCESSING_ACC = Text.builder().color(TextColors.RED).append(Text.of("Error accessing account!")).build(),
 			INSUFFICIENT_FUNDS = Text.builder().color(TextColors.RED).append(Text.of("Insufficient funds!")).build(),
@@ -18,8 +23,8 @@ public class Messenger {
 			INVALID_ACC_BAL = Text.builder().color(TextColors.RED).append(Text.of("Invalid account balance!")).build(),
 			NOT_BUYING = Text.builder().color(TextColors.RED).append(Text.of("This shop is not currently buying this item!")).build(),
 			OTHER = Text.builder().color(TextColors.RED).append(Text.of("An error occurred while processing your transaction")).build(),
-			YOU_PURCHASED = Text.builder().color(TextColors.BLUE).append(Text.of("&1You have purchased &a%d &1%s &afor &1%d&a!")).build(),
-			YOU_SOLD = Text.builder().color(TextColors.GREEN).append(Text.of("&1You have sold &a%d &1%s &afor &1%d&a!")).build();
+			YOU_PURCHASED = Text.builder().color(TextColors.BLUE).append(Text.of("&1You have purchased &a%s &1%s &afor &1%s&a!")).build(),
+			YOU_SOLD = Text.builder().color(TextColors.GREEN).append(Text.of("&1You have sold &a%s &1%s &afor &1%s&a!")).build();
 
 	public static Text format(Text text) {
 		// TODO: replace text colors from legacy color codes

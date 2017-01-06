@@ -2,8 +2,9 @@ package net.sparkzz.shops;
 
 import com.google.inject.Inject;
 import net.sparkzz.shops.command.Commands;
+import net.sparkzz.shops.shop.Shop;
 import net.sparkzz.shops.util.IMS;
-import net.sparkzz.shops.util.TransactionListener;
+import net.sparkzz.shops.event.TransactionListener;
 import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.event.Listener;
@@ -12,16 +13,23 @@ import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
 import org.spongepowered.api.event.game.state.GameStartedServerEvent;
 import org.spongepowered.api.event.game.state.GameStoppingServerEvent;
 import org.spongepowered.api.event.service.ChangeServiceProviderEvent;
+import org.spongepowered.api.item.ItemTypes;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.service.economy.EconomyService;
+
+import java.math.BigDecimal;
+import java.util.UUID;
 
 /**
  * @author Brendon Butler
  */
-@Plugin(id = "shops", name = "Shops", version = "0.2.5-ALPHA", description = "Command Based Shops", authors = {"MrSparkzz"})
+@Plugin(id = "shops", name = "Shops", version = "0.3.6-ALPHA", description = "Command Based Shops", authors = {"MrSparkzz"})
 public class Shops {
 
-	private EconomyService economy;
+	private static EconomyService economy;
+
+	// TODO: replace with shop player is in
+	private static Shop shop = new Shop("Test Shop", UUID.randomUUID());
 
 	@Inject
 	private Logger logger;
@@ -36,6 +44,14 @@ public class Shops {
 	@Listener
 	public void onServerStart(GameStartedServerEvent event) {
 		new IMS(economy);
+
+		shop.add(ItemTypes.COOKED_PORKCHOP, 10, -1, new BigDecimal(5), new BigDecimal(2.5));
+		shop.deposit(new BigDecimal(1000));
+	}
+
+	// TODO: REMOVE
+	public static Shop getDefaultShop() {
+		return shop;
 	}
 
 	@Listener
@@ -53,7 +69,7 @@ public class Shops {
 		Commands.register(this);
 	}
 
-	public EconomyService getEconomy() {
+	public static EconomyService getEconomy() {
 		return economy;
 	}
 

@@ -1,5 +1,7 @@
 package net.sparkzz.shops.util;
 
+import net.sparkzz.shops.Shops;
+import net.sparkzz.shops.event.TransactionEvent;
 import net.sparkzz.shops.shop.Shop;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
@@ -8,13 +10,14 @@ import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.service.economy.EconomyService;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
 import org.spongepowered.api.service.economy.transaction.ResultType;
+import org.spongepowered.api.text.Text;
 
 import java.math.BigDecimal;
 import java.util.Optional;
 
-import static net.sparkzz.shops.util.TransactionEvent.Reason.*;
-import static net.sparkzz.shops.util.TransactionEvent.Status.*;
-import static net.sparkzz.shops.util.TransactionEvent.TransactionType.*;
+import static net.sparkzz.shops.event.TransactionEvent.Reason.*;
+import static net.sparkzz.shops.event.TransactionEvent.Status.*;
+import static net.sparkzz.shops.event.TransactionEvent.TransactionType.*;
 
 /**
  * Point of Sale system
@@ -25,8 +28,10 @@ public class POS {
 
 	// TODO: store transaction history
 
-	public static UniqueAccount retrievePlayerAccount(Player player, EconomyService economy) {
-		Optional<UniqueAccount> optionalAcc = economy.getOrCreateAccount(player.getUniqueId());
+	public static UniqueAccount retrievePlayerAccount(Player player) {
+		if (Shops.getEconomy() == null) player.sendMessage(Text.of("ECONOMY == NULL"));
+
+		Optional<UniqueAccount> optionalAcc = Shops.getEconomy().getOrCreateAccount(player.getUniqueId());
 
 		if (!optionalAcc.isPresent()) {
 			player.sendMessage(Messenger.ERROR_ACCESSING_ACC);
@@ -77,5 +82,10 @@ public class POS {
 		else if (saleResult == ResultType.FAILED)
 			Sponge.getEventManager().post(new TransactionEvent(shop, player, item, SALE_TO_SHOP, FAILED, OTHER, Cause.source(account).build()));
 		return false;
+	}
+
+	public static void refund(Shop shop, UniqueAccount account, BigDecimal amount, EconomyService economy) {
+		account.withdraw(economy.getDefaultCurrency(), amount, Cause.source(account).build());
+		shop.deposit(amount);
 	}
 }

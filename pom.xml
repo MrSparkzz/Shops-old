@@ -29,7 +29,7 @@
 	<package>net.sparkzz.shops</package>
 	<githubProject>mrsparkzz/Shops</githubProject>
 	<!--MAJOR.MINOR.BUILD-RELEASE-->
-	<version>0.2.5-ALPHA</version>
+	<version>0.3.6-ALPHA</version>
 
 	<repositories>
 		<repository>

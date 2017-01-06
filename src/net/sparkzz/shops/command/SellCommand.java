@@ -13,7 +13,7 @@ import org.spongepowered.api.entity.living.player.Player;
 /**
  * @author Brendon Butler
  */
-public class BuyCommand implements CommandExecutor {
+public class SellCommand implements CommandExecutor {
 
 	@Override
 	public CommandResult execute(CommandSource source, CommandContext context) throws CommandException {
@@ -26,7 +26,7 @@ public class BuyCommand implements CommandExecutor {
 		Integer itemIndex = context.<Integer>getOne("item-index").get(),
 				quantity = context.<Integer>getOne("quantity").get();
 
-		IMS.purchase(Shops.getDefaultShop(), player, Shops.getDefaultShop().getItemById(itemIndex), quantity);
+		IMS.sell(Shops.getDefaultShop(), player, Shops.getDefaultShop().getItemById(itemIndex), quantity);
 
 		return CommandResult.success();
 	}

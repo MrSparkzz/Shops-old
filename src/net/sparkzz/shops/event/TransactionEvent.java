@@ -1,10 +1,11 @@
-package net.sparkzz.shops.util;
+package net.sparkzz.shops.event;
 
 import net.sparkzz.shops.shop.Shop;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Cancellable;
-import org.spongepowered.api.event.Event;
 import org.spongepowered.api.event.cause.Cause;
+import org.spongepowered.api.event.entity.living.humanoid.player.TargetPlayerEvent;
+import org.spongepowered.api.event.impl.AbstractEvent;
 import org.spongepowered.api.item.inventory.ItemStack;
 
 import java.math.BigDecimal;
@@ -13,17 +14,17 @@ import java.util.Date;
 /**
  * @author Brendon Butler
  */
-public class TransactionEvent implements Cancellable, Event {
+public class TransactionEvent extends AbstractEvent implements Cancellable {
 
-	public static enum Reason {
+	public enum Reason {
 		NONE, INSUFFICIENT_FUNDS, INSUFFICIENT_STOCK, INVALID_ACC_BAL, INSUFFICIENT_INV_SPACE, MORE_THAN_DESIRED, NOT_BUYING, OTHER
 	}
 
-	public static enum Status {
+	public enum Status {
 		FAILED, SUCCESS, INTERRUPTED
 	}
 
-	public static enum TransactionType {
+	public enum TransactionType {
 		REFUND, SALE, SALE_TO_SHOP
 	}
 
