@@ -3,7 +3,9 @@ package net.sparkzz.shops;
 import com.google.inject.Inject;
 import net.sparkzz.shops.command.Commands;
 import net.sparkzz.shops.util.IMS;
+import net.sparkzz.shops.util.TransactionListener;
 import org.slf4j.Logger;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.game.state.GameInitializationEvent;
 import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
@@ -16,7 +18,7 @@ import org.spongepowered.api.service.economy.EconomyService;
 /**
  * @author Brendon Butler
  */
-@Plugin(id = "shops", name = "Shops", version = "0.1.4-ALPHA", description = "Command Based Shops", authors = {"MrSparkzz"})
+@Plugin(id = "shops", name = "Shops", version = "0.2.5-ALPHA", description = "Command Based Shops", authors = {"MrSparkzz"})
 public class Shops {
 
 	private EconomyService economy;
@@ -43,7 +45,7 @@ public class Shops {
 
 	@Listener
 	public void preInit(GamePreInitializationEvent event) {
-		logger.info("working..");
+		Sponge.getEventManager().registerListeners(this, new TransactionListener());
 	}
 
 	@Listener

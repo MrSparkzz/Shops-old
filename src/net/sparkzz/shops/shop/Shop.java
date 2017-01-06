@@ -11,7 +11,7 @@ import java.util.*;
 public class Shop {
 
 	private BigDecimal balance;
-	private boolean infiniteCash = false;
+	private boolean infiniteFunds = false;
 	private boolean infiniteStock = false;
 	private List<ItemType> items;
 	private Map<ItemType, Map<String, Object>> inventory;
@@ -41,6 +41,10 @@ public class Shop {
 		return inventory.containsKey(item);
 	}
 
+	public boolean hasInfiniteFunds() {
+		return infiniteFunds;
+	}
+
 	public boolean hasInfiniteStock() {
 		return infiniteStock;
 	}
@@ -53,7 +57,7 @@ public class Shop {
 		return (BigDecimal) inventory.get(item).get("buy-price");
 	}
 
-	public BigDecimal getSellPrice(ItemType item) {
+	public BigDecimal getSalePrice(ItemType item) {
 		return (BigDecimal) inventory.get(item).get("sale-price");
 	}
 

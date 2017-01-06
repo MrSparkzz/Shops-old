@@ -1,7 +1,9 @@
 package net.sparkzz.shops.util;
 
 import net.sparkzz.shops.shop.Shop;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.inventory.Inventory;
 import org.spongepowered.api.item.inventory.ItemStack;
@@ -9,10 +11,16 @@ import org.spongepowered.api.item.inventory.entity.PlayerInventory;
 import org.spongepowered.api.service.economy.EconomyService;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
 import org.spongepowered.api.text.Text;
-import org.spongepowered.api.text.format.TextColors;
 
 import java.math.BigDecimal;
 import java.util.Optional;
+
+import static net.sparkzz.shops.util.Messenger.YOU_PURCHASED;
+import static net.sparkzz.shops.util.Messenger.YOU_SOLD;
+import static net.sparkzz.shops.util.TransactionEvent.Reason.*;
+import static net.sparkzz.shops.util.TransactionEvent.Status.INTERRUPTED;
+import static net.sparkzz.shops.util.TransactionEvent.TransactionType.SALE;
+import static net.sparkzz.shops.util.TransactionEvent.TransactionType.SALE_TO_SHOP;
 
 /**
  * Inventory Management System
@@ -29,8 +37,10 @@ public class IMS {
 
 	// purchase from shop
 	public static boolean purchase(Shop shop, Player player, ItemType item, int quantity) {
+		ItemStack itemStack = ItemStack.builder().itemType(item).quantity(quantity).build();
+
 		if (getAvailableSpace((PlayerInventory) player.getInventory(), item) < quantity) {
-			player.sendMessage(Text.of("%sNot enough inventory space!", TextColors.RED));
+			Sponge.getEventManager().post(new TransactionEvent(shop, player, itemStack, SALE, INTERRUPTED, INSUFFICIENT_INV_SPACE, Cause.source(player.getInventory()).build()));
 			return false;
 		}
 
@@ -38,42 +48,41 @@ public class IMS {
 
 		if (account == null) return false;
 
-		BigDecimal totalPrice = shop.getBuyPrice(item).multiply(new BigDecimal(quantity));
+		BigDecimal totalPrice = shop.getSalePrice(item).multiply(new BigDecimal(quantity));
 
-		if (!POS.purchase(player, shop, account, totalPrice, economy)) return false;
+		if (!POS.purchase(player, shop, itemStack, account, totalPrice, economy)) return false;
 
 		if (!shop.hasInfiniteStock()) {
 			if (shop.getRemaining(item) < quantity) {
-				player.sendMessage(Text.of("%sStore has insufficient stock!", TextColors.RED));
-				POS.refund(player, shop, account, totalPrice, economy);
+				Sponge.getEventManager().post(new TransactionEvent(shop, player, itemStack, SALE, INTERRUPTED, INSUFFICIENT_STOCK, Cause.source(account).build()));
+				POS.refund(player, shop, itemStack, account, totalPrice, economy);
 				return false;
 			}
 			shop.remove(item, quantity);
 		}
 
-		ItemStack itemStack = ItemStack.builder().itemType(item).quantity(quantity).build();
-
 		player.getInventory().offer(itemStack);
-		player.sendMessage(Text.of("%sYou have purchased %s%d %s%s %sfor %s%d%s!",
-				TextColors.BLUE, TextColors.GREEN, quantity, TextColors.BLUE, TextColors.GREEN, (quantity != 1 ? MessageHandler.pluralize(item.getName()) : item.getName()),
-				TextColors.BLUE, TextColors.GREEN, economy.getDefaultCurrency().format(totalPrice), TextColors.BLUE));
+		player.sendMessage(Messenger.format(Text.of(YOU_PURCHASED,
+				quantity, (quantity != 1 ? Messenger.pluralize(item.getName()) : item.getName()), economy.getDefaultCurrency().format(totalPrice))));
 		return true;
 	}
 
 	// sell to shop
 	public static boolean sell(Shop shop, Player player, ItemType item, int quantity) {
-		if (!player.getInventory().contains(ItemStack.builder().itemType(item).quantity(quantity).build())) {
-			player.sendMessage(Text.of("%sYou don't have enough of this item!", TextColors.RED));
+		ItemStack itemStack = ItemStack.builder().itemType(item).quantity(quantity).build();
+
+		if (!player.getInventory().contains(itemStack)) {
+			Sponge.getEventManager().post(new TransactionEvent(shop, player, itemStack, SALE_TO_SHOP, INTERRUPTED, INSUFFICIENT_STOCK, Cause.source(shop).build()));
 			return false;
 		}
 
 		if (shop.getDesiredAmount(item) == -1) {
-			player.sendMessage(Text.of("%sThis shop is not buying this item at this time!", TextColors.RED));
+			Sponge.getEventManager().post(new TransactionEvent(shop, player, itemStack, SALE_TO_SHOP, INTERRUPTED, NOT_BUYING, Cause.source(shop).build()));
 			return false;
 		}
 
 		if (shop.getDesiredAmount(item) < quantity) {
-			player.sendMessage(Text.of("%sQuantity provided is more than the shop is willing to buy!", TextColors.RED));
+			Sponge.getEventManager().post(new TransactionEvent(shop, player, itemStack, SALE_TO_SHOP, INTERRUPTED, MORE_THAN_DESIRED, Cause.source(shop).build()));
 			return false;
 		}
 
@@ -83,19 +92,21 @@ public class IMS {
 
 		BigDecimal totalPrice = shop.getBuyPrice(item).multiply(new BigDecimal(quantity));
 
-		if (shop.getBalance().compareTo(totalPrice) < 0) {
-			player.sendMessage(Text.of("%sThis shop has insufficient funds for this transaction!", TextColors.RED));
+		if (shop.getBalance().compareTo(totalPrice) < 0 && !shop.hasInfiniteFunds()) {
+			Sponge.getEventManager().post(new TransactionEvent(shop, player, itemStack, SALE_TO_SHOP, INTERRUPTED, INSUFFICIENT_FUNDS, Cause.source(account).build()));
 			return false;
 		}
 
-		if (!POS.sell(player, shop, account, totalPrice, economy));
+		if (!POS.sell(player, shop, itemStack, account, totalPrice, economy));
 
 		// TODO: remove item from player inventory
-		shop.add(item, quantity);
 
-		player.sendMessage(Text.of("%sYou have sold %s%d %s%s %sfor %s%d%s!",
-				TextColors.BLUE, TextColors.GREEN, quantity, TextColors.BLUE, TextColors.GREEN, (quantity != 1 ? MessageHandler.pluralize(item.getName()) : item.getName()),
-				TextColors.BLUE, TextColors.GREEN, economy.getDefaultCurrency().format(totalPrice), TextColors.BLUE));
+		if (!shop.hasInfiniteStock())
+			shop.add(item, quantity);
+
+		// TODO: regex information
+		player.sendMessage(Messenger.format(Text.of(YOU_SOLD,
+				quantity, (quantity != 1 ? Messenger.pluralize(item.getName()) : item.getName()), economy.getDefaultCurrency().format(totalPrice))));
 		return true;
 	}
 
