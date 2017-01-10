@@ -2,11 +2,14 @@ package net.sparkzz.shops;
 
 import com.google.inject.Inject;
 import net.sparkzz.shops.command.Commands;
+import net.sparkzz.shops.config.Config;
+import net.sparkzz.shops.config.YamlConfig;
+import net.sparkzz.shops.event.TransactionListener;
 import net.sparkzz.shops.shop.Shop;
 import net.sparkzz.shops.util.IMS;
-import net.sparkzz.shops.event.TransactionListener;
 import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
+import org.spongepowered.api.config.DefaultConfig;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.game.state.GameInitializationEvent;
 import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
@@ -18,6 +21,7 @@ import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.service.economy.EconomyService;
 
 import java.math.BigDecimal;
+import java.nio.file.Path;
 import java.util.UUID;
 
 /**
@@ -31,8 +35,18 @@ public class Shops {
 	// TODO: replace with shop player is in
 	private static Shop shop = new Shop("Test Shop", UUID.randomUUID());
 
+	private Config defaultConfig, shopsConfig;
+
 	@Inject
 	private Logger logger;
+
+	@Inject
+	@DefaultConfig(sharedRoot = true)
+	private Path defaultConfiguration;
+
+	@Inject
+	@DefaultConfig(sharedRoot = false)
+	private Path defaultConfigDir;
 
 	@Listener
 	public void onChangeServiceProvider(ChangeServiceProviderEvent event) {
@@ -56,7 +70,7 @@ public class Shops {
 
 	@Listener
 	public void onServerStop(GameStoppingServerEvent event) {
-		// server stopping
+		shopsConfig.save();
 	}
 
 	@Listener
@@ -67,6 +81,8 @@ public class Shops {
 	@Listener
 	public void init(GameInitializationEvent event) {
 		Commands.register(this);
+
+		shopsConfig = new YamlConfig(defaultConfigDir, "shops");
 	}
 
 	public static EconomyService getEconomy() {
@@ -75,5 +91,13 @@ public class Shops {
 
 	public Logger getLogger() {
 		return logger;
+	}
+
+	public Path getConfig() {
+		return defaultConfiguration;
+	}
+
+	public Path getDefaultConfigDir() {
+		return defaultConfigDir;
 	}
 }
