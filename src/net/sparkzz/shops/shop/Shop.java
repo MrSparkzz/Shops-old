@@ -15,26 +15,41 @@ public class Shop {
 	private boolean infiniteStock = false;
 	private List<ItemType> items;
 	private Map<ItemType, Map<String, Object>> inventory;
+	private String name;
 	private UUID ownerID, shopID;
 
 	// To be used when creating a shop for the first time
 	public Shop(String name, UUID ownerID) {
-		balance = new BigDecimal(0);
-		inventory = new HashMap<>();
-		items = new ArrayList<ItemType>(inventory.keySet()) {
+		this.name = name;
+		this.balance = new BigDecimal(0);
+		this.inventory = new HashMap<>();
+		this.items = new ArrayList<ItemType>(inventory.keySet()) {
 			public boolean add(ItemType item) {
 				super.add(item);
 				Collections.sort(items, (first, second) -> first.getName().compareTo(second.getName()));
 				return true;
 			}
 		};
-		shopID = UUID.randomUUID();
+		this.shopID = UUID.randomUUID();
 		this.ownerID = ownerID;
 	}
 
 	// To be used when loading a shop
-	public Shop(UUID shopID) {
-		// TODO: create ShopLoader
+	public Shop(UUID shopID, UUID ownerID, String name, BigDecimal balance, boolean infiniteFunds, boolean infiniteStock, Map<ItemType, Map<String, Object>> inventory) {
+		this.shopID = shopID;
+		this.ownerID = ownerID;
+		this.name = name;
+		this.balance = balance;
+		this.infiniteFunds = infiniteFunds;
+		this.infiniteStock = infiniteStock;
+		this.inventory = inventory;
+		this.items = new ArrayList<ItemType>(inventory.keySet()) {
+			public boolean add(ItemType item) {
+				super.add(item);
+				Collections.sort(items, (first, second) -> first.getName().compareTo(second.getName()));
+				return true;
+			}
+		};
 	}
 
 	public boolean contains(ItemType item) {
@@ -54,21 +69,21 @@ public class Shop {
 	}
 
 	public BigDecimal getBuyPrice(ItemType item) {
-		return (BigDecimal) inventory.get(item).get("buy-price");
+		return new BigDecimal(inventory.get(item).get("buy-price").toString());
 	}
 
 	public BigDecimal getSalePrice(ItemType item) {
-		return (BigDecimal) inventory.get(item).get("sale-price");
+		return new BigDecimal(inventory.get(item).get("sale-price").toString());
 	}
 
 	public int getDesiredAmount(ItemType item) {
-		return (int) inventory.get(item).get("desired");
+		return Integer.parseInt(inventory.get(item).get("desired").toString());
 	}
 
 	public int getRemaining(ItemType item) {
 		if (infiniteStock) return -1;
 
-		return (int) inventory.get(item).get("quantity");
+		return Integer.parseInt(inventory.get(item).get("quantity").toString());
 	}
 
 	public int getID(ItemType item) {
@@ -79,8 +94,25 @@ public class Shop {
 		return items.get(id - 1);
 	}
 
+	public Map<ItemType, Map<String, Object>> getInventory() {
+		return inventory;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public UUID getOwnerID() {
+		return ownerID;
+	}
+
+	public UUID getShopID() {
+		return shopID;
+	}
+
 	public void add(ItemType item, int quantity) {
 		inventory.get(item).put("quantity", getRemaining(item) + quantity);
+		items.add(item);
 	}
 
 	public void add(ItemType item, int quantity, int desired, BigDecimal salePrice, BigDecimal buyPrice) {
@@ -102,12 +134,13 @@ public class Shop {
 	}
 
 	public void remove(ItemType item, int quantity) {
-		if (getRemaining(item) != -1)
+		if (getRemaining(item) != -1 || infiniteStock)
 			inventory.get(item).put("quantity", (int) inventory.get(item).get("quantity") - quantity);
 	}
 
 	public void withdraw(BigDecimal amount) {
-		balance = balance.subtract(amount);
+		if (!infiniteFunds)
+			balance = balance.subtract(amount);
 	}
 
 	public void adjustDesiredAmount(ItemType item, int quantity) {

@@ -7,6 +7,7 @@ import net.sparkzz.shops.config.YamlConfig;
 import net.sparkzz.shops.event.TransactionListener;
 import net.sparkzz.shops.shop.Shop;
 import net.sparkzz.shops.util.IMS;
+import net.sparkzz.shops.util.ShopLoader;
 import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.config.DefaultConfig;
@@ -27,13 +28,10 @@ import java.util.UUID;
 /**
  * @author Brendon Butler
  */
-@Plugin(id = "shops", name = "Shops", version = "0.3.6-ALPHA", description = "Command Based Shops", authors = {"MrSparkzz"})
+@Plugin(id = "shops", name = "Shops", version = "0.4.7-ALPHA", description = "Command Based Shops", authors = {"MrSparkzz"})
 public class Shops {
 
 	private static EconomyService economy;
-
-	// TODO: replace with shop player is in
-	private static Shop shop = new Shop("Test Shop", UUID.randomUUID());
 
 	private Config defaultConfig, shopsConfig;
 
@@ -58,19 +56,16 @@ public class Shops {
 	@Listener
 	public void onServerStart(GameStartedServerEvent event) {
 		new IMS(economy);
-
-		shop.add(ItemTypes.COOKED_PORKCHOP, 10, -1, new BigDecimal(5), new BigDecimal(2.5));
-		shop.deposit(new BigDecimal(1000));
 	}
 
 	// TODO: REMOVE
 	public static Shop getDefaultShop() {
-		return shop;
+		return ShopLoader.shops.get(UUID.fromString("8d12e6f6-8c58-4ac2-b753-25e7ce92d926"));
 	}
 
 	@Listener
 	public void onServerStop(GameStoppingServerEvent event) {
-		shopsConfig.save();
+		ShopLoader.save(this, shopsConfig);
 	}
 
 	@Listener
@@ -83,6 +78,8 @@ public class Shops {
 		Commands.register(this);
 
 		shopsConfig = new YamlConfig(defaultConfigDir, "shops");
+
+		ShopLoader.load(this, shopsConfig);
 	}
 
 	public static EconomyService getEconomy() {

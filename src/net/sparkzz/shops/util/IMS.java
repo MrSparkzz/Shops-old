@@ -66,7 +66,7 @@ public class IMS {
 		// TODO: streamline so player/shop HAS to have sufficient funds & stock
 		if (!POS.purchase(player, shop, itemStack, account, totalPrice, economy)) return;
 
-		if (shop.getRemaining(item) < quantity && shop.getRemaining(item) != -1) {
+		if (shop.getRemaining(item) < quantity && shop.getRemaining(item) != -1 && shop.hasInfiniteStock()) {
 			Sponge.getEventManager().post(new TransactionEvent(shop, player, itemStack, SALE, INTERRUPTED, INSUFFICIENT_STOCK, Cause.source(account).build()));
 			POS.refund(player, shop, itemStack, account, totalPrice, economy);
 			return;
@@ -117,7 +117,7 @@ public class IMS {
 			return;
 		}
 
-		if (!shop.hasInfiniteStock())
+		if (!shop.hasInfiniteStock() || shop.getRemaining(item) != -1)
 			shop.add(item, quantity);
 		shop.adjustDesiredAmount(item, quantity);
 

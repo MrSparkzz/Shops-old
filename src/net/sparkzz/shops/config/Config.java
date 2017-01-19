@@ -1,5 +1,6 @@
 package net.sparkzz.shops.config;
 
+import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.util.*;
 
@@ -10,6 +11,14 @@ import java.util.*;
  * @author Brendon Butler
  */
 public interface Config {
+
+	/**
+	 * <p>Gets {@code BigDecimal} from configuration.</p>
+	 *
+	 * @param key Input {@link String}.
+	 * @return {@code BigDecimal} from config.
+	 */
+	BigDecimal getBigDecimal(String key);
 
 	/**
 	 * <p>Checks if configuration contains a key.</p>
@@ -165,6 +174,14 @@ public interface Config {
 	 * @return {@link String} from config using key.
 	 */
 	String getString(String key);
+
+	/**
+	 * <p>Gets {@link UUID} from configuration.</p>
+	 *
+	 * @param key Input {@link String}.
+	 * @return {@link UUID} from config using key.
+	 */
+	UUID getUUID(String key);
 
 	/**
 	 * <p>Gets {@link Vector} from configuration.</p>

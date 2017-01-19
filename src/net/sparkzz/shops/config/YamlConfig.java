@@ -1,10 +1,12 @@
 package net.sparkzz.shops.config;
 
+import net.sparkzz.shops.util.ShopLoader;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.representer.Representer;
 
 import java.io.*;
+import java.math.BigDecimal;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -47,6 +49,22 @@ public class YamlConfig implements Config {
 		dumperOptions.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
 		dumperOptions.setAllowUnicode(Charset.defaultCharset().name().contains("UTF"));
 		representer.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
+	}
+
+	@Override
+	public BigDecimal getBigDecimal(String key) {
+		tempObject = get(key);
+
+		if (tempObject instanceof BigDecimal)
+			return (BigDecimal) tempObject;
+		if (tempObject instanceof Double)
+			return new BigDecimal((Double) tempObject);
+		if (tempObject instanceof String)
+			if (isDecimalNumber(tempObject.toString()))
+				return new BigDecimal(tempObject.toString());
+		if (tempObject instanceof Number)
+			return new BigDecimal(tempObject.toString());
+		return new BigDecimal(-1);
 	}
 
 	public boolean contains(String key) {
@@ -313,6 +331,17 @@ public class YamlConfig implements Config {
 		return null;
 	}
 
+	@Override
+	public UUID getUUID(String key) {
+		tempObject = get(key);
+
+		if (tempObject instanceof UUID)
+			return (UUID) tempObject;
+		if (tempObject instanceof String)
+			return UUID.fromString(tempObject.toString());
+		return null;
+	}
+
 	public Vector<?> getVector(String key) {
 		tempObject = get(key);
 
@@ -349,17 +378,10 @@ public class YamlConfig implements Config {
 
 	public void load() {
 		try {
-			if (data.isEmpty()) return;
-
 			if (!Files.exists(configFile))
 				return; // TODO: Error when loading
 
 			reader = new FileReader(configFile.toFile());
-
-			if (reader != null) {
-				data = new LinkedHashMap();
-				return;
-			}
 
 			data = new LinkedHashMap((Map) yaml.load(reader));
 		} catch (FileNotFoundException exception) {
@@ -373,6 +395,8 @@ public class YamlConfig implements Config {
 	}
 
 	public void save() {
+		if (data.isEmpty()) return;
+
 		try {
 			if (!Files.exists(configFile))
 				Files.createFile(configFile);
